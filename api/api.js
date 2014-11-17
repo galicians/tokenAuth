@@ -2,6 +2,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose')
 var User = require('./models/User.js')
+var jwt = require('./services/jwt.js')
 
 var app = express();
 
@@ -25,13 +26,25 @@ app.post('/register', function(req, res) {
     password: user.password
   })
 
-  newUser.save(function(err){
-    res.status(200).send(newUser.toJSON());
-  })
+  var payload = {
+    iss: req.hostname,
+    sub: user._id
+  }
 
+  var token = jwt.encode(payload, "shhh..")
+
+  newUser.save(function(err){
+    res.status(200).send({
+      user: newUser.toJSON(),
+      token: token
+
+    });
+  })
 })
 
 mongoose.connect('mongodb://localhost/tokenauth')
+
+
 
 var server = app.listen(3000, function() {
   console.log('api listening on', server.address().port)
